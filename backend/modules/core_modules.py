@@ -189,17 +189,6 @@ class ChannelManager:
                             "highest_severity": title_analysis["highest_severity"],
                             "analysis_results": json.dumps(title_analysis, ensure_ascii=False)
                         })
-                        
-                        # Insert detected categories
-                        for category in title_analysis["dangerous_categories"]:
-                            if category in title_analysis["matches"]:
-                                self.db.insert("analysis_categories", {
-                                    "analysis_id": analysis_id,
-                                    "category_name": category,
-                                    "severity": title_analysis["matches"][category]["severity"],
-                                    "keywords": json.dumps(title_analysis["matches"][category]["keywords"], ensure_ascii=False),
-                                    "count": title_analysis["matches"][category]["count"]
-                                })
                 
                 added_video_ids.append(video_db_id)
             
@@ -261,32 +250,6 @@ class ChannelManager:
                         "highest_severity": comment_analysis["highest_severity"],
                         "analysis_results": json.dumps(comment_analysis, ensure_ascii=False)
                     })
-                    
-                    # Insert detected categories
-                    for category in comment_analysis["dangerous_categories"]:
-                        # Find the highest severity for this category across all comments
-                        severity = 1
-                        keywords = []
-                        count = 0
-                        
-                        for dangerous_comment in comment_analysis["dangerous_comments"]:
-                            if category in dangerous_comment["analysis"]["dangerous_categories"]:
-                                cat_data = dangerous_comment["analysis"]["matches"].get(category, {})
-                                severity = max(severity, cat_data.get("severity", 1))
-                                if "keywords" in cat_data:
-                                    keywords.extend(cat_data["keywords"])
-                                count += cat_data.get("count", 0)
-                        
-                        # Deduplicate keywords
-                        keywords = list(set(keywords))
-                        
-                        self.db.insert("analysis_categories", {
-                            "analysis_id": analysis_id,
-                            "category_name": category,
-                            "severity": severity,
-                            "keywords": json.dumps(keywords, ensure_ascii=False),
-                            "count": count
-                        })
             
             # Add comments to database
             for comment in comments:
@@ -376,17 +339,6 @@ class VideoProcessor:
                     "highest_severity": title_analysis["highest_severity"],
                     "analysis_results": json.dumps(title_analysis, ensure_ascii=False)
                 })
-                
-                # Insert detected categories
-                for category in title_analysis["dangerous_categories"]:
-                    if category in title_analysis["matches"]:
-                        db.insert("analysis_categories", {
-                            "analysis_id": analysis_id,
-                            "category_name": category,
-                            "severity": title_analysis["matches"][category]["severity"],
-                            "keywords": json.dumps(title_analysis["matches"][category]["keywords"], ensure_ascii=False),
-                            "count": title_analysis["matches"][category]["count"]
-                        })
             
             db.close()
             return title_analysis
@@ -483,32 +435,6 @@ class VideoProcessor:
                     "highest_severity": comment_analysis["highest_severity"],
                     "analysis_results": json.dumps(comment_analysis, ensure_ascii=False)
                 })
-                
-                # Insert detected categories
-                for category in comment_analysis["dangerous_categories"]:
-                    # Find the highest severity for this category across all comments
-                    severity = 1
-                    keywords = []
-                    count = 0
-                    
-                    for dangerous_comment in comment_analysis["dangerous_comments"]:
-                        if category in dangerous_comment["analysis"]["dangerous_categories"]:
-                            cat_data = dangerous_comment["analysis"]["matches"].get(category, {})
-                            severity = max(severity, cat_data.get("severity", 1))
-                            if "keywords" in cat_data:
-                                keywords.extend(cat_data["keywords"])
-                            count += cat_data.get("count", 0)
-                    
-                    # Deduplicate keywords
-                    keywords = list(set(keywords))
-                    
-                    db.insert("analysis_categories", {
-                        "analysis_id": analysis_id,
-                        "category_name": category,
-                        "severity": severity,
-                        "keywords": json.dumps(keywords, ensure_ascii=False),
-                        "count": count
-                    })
             
             db.close()
             return comment_analysis

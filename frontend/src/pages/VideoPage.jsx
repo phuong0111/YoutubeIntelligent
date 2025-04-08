@@ -79,6 +79,16 @@ const VideoPage = () => {
     });
   }
 
+  // Helper function to safely get categories from analysis results
+  const getCategoriesFromAnalysis = (analysis) => {
+    if (!analysis || !analysis.results || !analysis.results.matches) {
+      return [];
+    }
+    
+    // With transformer model approach, we get categories from matches object keys
+    return Object.keys(analysis.results.matches);
+  };
+
   return (
     <div className="video-page">
       <div className="video-content-wrapper">
@@ -229,15 +239,15 @@ const VideoPage = () => {
                 <div className="category-summary">
                   <h4>Detected Categories:</h4>
                   <div className="category-tags">
-                    {/* Collect all unique categories across all analyses */}
+                    {/* Collect all unique categories from matches in all analyses */}
                     {[
-                      ...(hasDangerousTitle ? video.title_analysis.results.dangerous_categories : []),
-                      ...(hasDangerousComments ? video.comment_analysis.results.dangerous_categories : []),
-                      ...(hasDangerousTranscription ? 
-                          video.transcriptions
-                            .filter(t => t.analysis && t.analysis.is_dangerous)
-                            .flatMap(t => t.analysis.results.dangerous_categories) : 
-                          []
+                      ...(hasDangerousTitle ? getCategoriesFromAnalysis(video.title_analysis) : []),
+                      ...(hasDangerousComments ? getCategoriesFromAnalysis(video.comment_analysis) : []),
+                      ...(hasDangerousTranscription 
+                          ? video.transcriptions
+                              .filter(t => t.analysis && t.analysis.is_dangerous)
+                              .flatMap(t => getCategoriesFromAnalysis(t.analysis))
+                          : []
                       )
                     ]
                       .filter((value, index, self) => self.indexOf(value) === index) // Remove duplicates
@@ -339,11 +349,14 @@ const VideoPage = () => {
                               </div>
                               <p className="comment-text">{item.comment_data.text}</p>
                               <div className="comment-categories">
-                                {item.analysis.dangerous_categories.map((category, catIndex) => (
-                                  <span key={catIndex} className="comment-category">
-                                    {category.replace(/_/g, ' ')}
-                                  </span>
-                                ))}
+                                {/* Updated to get categories from matches in analysis */}
+                                {item.analysis && item.analysis.matches ? 
+                                  Object.keys(item.analysis.matches).map((category, catIndex) => (
+                                    <span key={catIndex} className="comment-category">
+                                      {category.replace(/_/g, ' ')}
+                                    </span>
+                                  )) : null
+                                }
                               </div>
                             </li>
                           ))}

@@ -66,17 +66,6 @@ CREATE TABLE IF NOT EXISTS content_analysis (
     FOREIGN KEY (video_id) REFERENCES videos(id) ON DELETE CASCADE
 );
 
--- Analysis categories table to store which dangerous categories were detected
-CREATE TABLE IF NOT EXISTS analysis_categories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    analysis_id INTEGER NOT NULL,
-    category_name TEXT NOT NULL,
-    severity INTEGER NOT NULL,
-    keywords TEXT NOT NULL,  -- JSON array of matched keywords
-    count INTEGER NOT NULL,
-    FOREIGN KEY (analysis_id) REFERENCES content_analysis(id) ON DELETE CASCADE
-);
-
 -- Comments table to store video comments
 CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,6 +99,5 @@ CREATE INDEX IF NOT EXISTS idx_transcriptions_audio_id ON transcriptions(audio_i
 CREATE INDEX IF NOT EXISTS idx_content_analysis_transcription_id ON content_analysis(transcription_id);
 CREATE INDEX IF NOT EXISTS idx_content_analysis_video_id ON content_analysis(video_id);
 CREATE INDEX IF NOT EXISTS idx_content_analysis_content_type ON content_analysis(content_type);
-CREATE INDEX IF NOT EXISTS idx_analysis_categories_analysis_id ON analysis_categories(analysis_id);
 CREATE INDEX IF NOT EXISTS idx_comments_video_id ON comments(video_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_entity ON tasks(entity_id, entity_type);
